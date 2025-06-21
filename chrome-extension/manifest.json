@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "URL Sender",
+  "version": "1.0",
+  "description": "Send current URL to server with Shift+Ctrl+P",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
+  "commands": {
+    "send-url": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+O"
+      },
+      "description": "Send current URL to server"
+    }
+  }
+}

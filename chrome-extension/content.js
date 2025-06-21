@@ -1,0 +1,1 @@
+// Content script placeholder - commands are handled by background script
