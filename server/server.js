@@ -5,6 +5,7 @@ const path = require('path');
 
 const app = express();
 const PORT = 3000;
+const API_KEY = 'pocketz-api-key-2024';
 
 app.use(cors());
 app.use(express.json());
@@ -12,6 +13,11 @@ app.use(express.json());
 app.post('/save-url', async (req, res) => {
   try {
     const { url } = req.body;
+    const apiKey = req.headers['x-api-key'];
+    
+    if (!apiKey || apiKey !== API_KEY) {
+      return res.status(401).json({ error: 'Invalid or missing API key' });
+    }
     
     if (!url) {
       return res.status(400).json({ error: 'URL is required' });

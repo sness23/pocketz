@@ -13,10 +13,11 @@ chrome.commands.onCommand.addListener(async (command) => {
 
 async function sendUrlToServer(url) {
   try {
-    const response = await fetch('http://localhost:3000/save-url', {
+    const response = await fetch('https://pocketz.doi.bio/save-url', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-API-Key': 'pocketz-api-key-2024'
       },
       body: JSON.stringify({ url })
     });
