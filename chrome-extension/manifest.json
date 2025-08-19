@@ -5,7 +5,8 @@
   "description": "Send current URL to server with Shift+Alt+O",
   "permissions": [
     "activeTab",
-    "scripting"
+    "scripting",
+    "downloads"
   ],
   "background": {
     "service_worker": "background.js"

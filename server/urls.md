@@ -9,3 +9,7 @@
 - [2025-08-19T00:03:37.366Z] http://test.com
 - [2025-08-19T00:03:56.714Z] chrome://extensions/
 - [2025-08-19T00:04:05.327Z] https://sness.doi.bio/sness
+- [2025-08-19T00:06:09.400Z] https://sness.doi.bio/sness
+- [2025-08-19T00:06:41.976Z] https://www.nature.com/articles/d41586-025-00111-5
+- [2025-08-19T00:10:38.166Z] https://www.nature.com/articles/d41586-025-00111-5
+- [2025-08-19T00:13:22.802Z] https://www.nature.com/articles/d41586-025-02621-8
