@@ -13,6 +13,7 @@ const API_KEY = 'pocketz-api-key-2024';
 const DOWNLOADS_DIR = '/home/sness/down';
 const VAULT_DIR = '/home/sness/data/vaults/pocketz';
 const PAPERS_DIR = '/home/sness/data/vaults/pocketz/papers';
+const INDEX_FILE = '/home/sness/data/vaults/pocketz/index.md';
 
 app.use(cors());
 app.use(express.json());
@@ -54,7 +55,8 @@ app.post('/save-url', async (req, res) => {
     // Move the downloaded directory if it exists
     if (directoryName) {
       try {
-        await moveDownloadedFiles(directoryName);
+        const movedPDFs = await moveDownloadedFiles(directoryName);
+        await updateObsidianIndex(url, directoryName, movedPDFs);
         console.log(`Files moved to vault: ${directoryName}`);
       } catch (moveError) {
         console.error('Error moving files:', moveError);
@@ -82,12 +84,13 @@ async function moveDownloadedFiles(directoryName) {
     await fs.mkdir(PAPERS_DIR, { recursive: true });
     
     // First, find and move any PDF files to papers directory
-    await movePDFsToPapersFolder(sourcePath, directoryName);
+    const movedPDFs = await movePDFsToPapersFolder(sourcePath, directoryName);
     
     // Then move the main directory
     await execAsync(`mv "${sourcePath}" "${targetPath}"`);
     
     console.log(`Moved ${sourcePath} -> ${targetPath}`);
+    return movedPDFs;
   } catch (error) {
     console.error(`Failed to move ${sourcePath}:`, error.message);
     throw error;
@@ -95,6 +98,8 @@ async function moveDownloadedFiles(directoryName) {
 }
 
 async function movePDFsToPapersFolder(sourcePath, directoryName) {
+  const movedPDFs = [];
+  
   try {
     // Find all PDF files in the source directory and subdirectories
     const { stdout } = await execAsync(`find "${sourcePath}" -name "*.pdf" -type f`);
@@ -104,16 +109,61 @@ async function movePDFsToPapersFolder(sourcePath, directoryName) {
       
       for (const pdfFile of pdfFiles) {
         const fileName = path.basename(pdfFile);
-        const targetPdfPath = path.join(PAPERS_DIR, `${directoryName}_${fileName}`);
+        const targetFileName = `${directoryName}_${fileName}`;
+        const targetPdfPath = path.join(PAPERS_DIR, targetFileName);
         
         // Move PDF to papers folder with directory prefix to avoid conflicts
         await execAsync(`mv "${pdfFile}" "${targetPdfPath}"`);
-        console.log(`Moved PDF: ${fileName} -> papers/${directoryName}_${fileName}`);
+        console.log(`Moved PDF: ${fileName} -> papers/${targetFileName}`);
+        
+        movedPDFs.push(targetFileName);
       }
     }
   } catch (error) {
     // If no PDFs found or other error, just log it but don't fail
     console.log('No PDFs found or error moving PDFs:', error.message);
+  }
+  
+  return movedPDFs;
+}
+
+async function updateObsidianIndex(url, directoryName, movedPDFs) {
+  try {
+    const timestamp = new Date().toISOString();
+    const date = timestamp.split('T')[0];
+    
+    // Extract title from URL for better readability
+    const urlParts = url.split('/');
+    const articleId = urlParts[urlParts.length - 1] || 'unknown';
+    
+    let indexEntry = `\n## ${date} - ${articleId}\n\n`;
+    indexEntry += `**URL:** ${url}\n\n`;
+    indexEntry += `**Assets:** [[${directoryName}]]\n\n`;
+    
+    if (movedPDFs.length > 0) {
+      indexEntry += `**Papers:**\n`;
+      for (const pdfFile of movedPDFs) {
+        indexEntry += `- [[papers/${pdfFile}]]\n`;
+      }
+      indexEntry += `\n`;
+    }
+    
+    indexEntry += `---\n`;
+    
+    // Append to index file, create if it doesn't exist
+    try {
+      await fs.access(INDEX_FILE);
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        const header = '# Pocketz Archive Index\n\nThis file contains links to all saved articles and papers.\n\n';
+        await fs.writeFile(INDEX_FILE, header);
+      }
+    }
+    
+    await fs.appendFile(INDEX_FILE, indexEntry);
+    console.log(`Updated Obsidian index with entry for ${articleId}`);
+  } catch (error) {
+    console.error('Error updating Obsidian index:', error);
   }
 }
 
