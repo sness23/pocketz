@@ -171,7 +171,7 @@ async function updateObsidianIndex(url, directoryName, movedPDFs) {
     
     let indexEntry = `\n## ${date} - ${articleId}\n\n`;
     indexEntry += `**URL:** ${url}\n\n`;
-    indexEntry += `**Assets:** [${directoryName}](./${directoryName}/index.md)\n\n`;
+    indexEntry += `**Assets:** [[${directoryName}]]\n\n`;
     indexEntry += `---\n`;
     
     // Append to index file, create if it doesn't exist
