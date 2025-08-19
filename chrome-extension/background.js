@@ -109,5 +109,26 @@ function extractPageAssets() {
     }
   });
   
+  // Look for PDF download links and click them
+  const pdfLinks = document.querySelectorAll([
+    'a[href*=".pdf"]',
+    'a[data-test="download-pdf"]',
+    'a[data-track-type*="pdf"]',
+    '.c-pdf-download__link',
+    'a[download][href*=".pdf"]'
+  ].join(','));
+  
+  pdfLinks.forEach(link => {
+    if (link.href && (link.href.includes('.pdf') || link.dataset.articlePdf)) {
+      console.log('Found PDF download link, clicking:', link.href);
+      // Click the link to trigger download
+      link.click();
+      
+      // Also add to assets list for tracking
+      const fullUrl = link.href.startsWith('http') ? link.href : new URL(link.href, window.location.origin).href;
+      assets.push({ type: 'pdf', url: fullUrl, clicked: true });
+    }
+  });
+  
   return assets;
 }
