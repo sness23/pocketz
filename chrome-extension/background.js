@@ -52,13 +52,25 @@ async function downloadPageWithAssets(tabId, url, title) {
     const assets = result[0].result;
     console.log('Found assets:', assets);
     
-    // Extract page text content
-    const textResult = await chrome.scripting.executeScript({
-      target: { tabId: tabId },
-      function: extractPageText
-    });
+    // Wait a bit if PDFs were clicked to allow downloads to start
+    const pdfClicked = assets.some(asset => asset.clicked);
+    if (pdfClicked) {
+      console.log('PDF download links clicked, waiting 3 seconds...');
+      await new Promise(resolve => setTimeout(resolve, 3000));
+    }
     
-    const pageText = textResult[0].result;
+    // Extract page text content
+    let pageText = null;
+    try {
+      const textResult = await chrome.scripting.executeScript({
+        target: { tabId: tabId },
+        function: extractPageText
+      });
+      pageText = textResult[0].result;
+    } catch (error) {
+      console.warn('Failed to extract page text (frame may have been removed):', error);
+      // Continue without page text if frame was removed
+    }
     
     // Send page text to server to save as index.md
     if (pageText) {
