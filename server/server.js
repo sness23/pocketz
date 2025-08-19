@@ -16,7 +16,7 @@ const PAPERS_DIR = '/home/sness/data/vaults/pocketz/papers';
 const INDEX_FILE = '/home/sness/data/vaults/pocketz/index.md';
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
 
 app.post('/save-url', async (req, res) => {
   try {
@@ -68,6 +68,39 @@ app.post('/save-url', async (req, res) => {
   } catch (error) {
     console.error('Error saving URL:', error);
     res.status(500).json({ error: 'Failed to save URL' });
+  }
+});
+
+app.post('/save-text', async (req, res) => {
+  try {
+    const { title, content, url, directoryName } = req.body;
+    const apiKey = req.headers['x-api-key'];
+    
+    if (!apiKey || apiKey !== API_KEY) {
+      return res.status(401).json({ error: 'Invalid or missing API key' });
+    }
+    
+    if (!content || !directoryName) {
+      return res.status(400).json({ error: 'Content and directory name are required' });
+    }
+
+    const targetDir = path.join(VAULT_DIR, directoryName);
+    const indexFile = path.join(targetDir, 'index.md');
+    
+    // Ensure directory exists
+    await fs.mkdir(targetDir, { recursive: true });
+    
+    // Create markdown content
+    const markdownContent = `# ${title || 'Saved Page'}\n\n**URL:** ${url}\n\n**Saved:** ${new Date().toISOString()}\n\n---\n\n${content}`;
+    
+    // Write the index.md file
+    await fs.writeFile(indexFile, markdownContent);
+    
+    console.log(`Page text saved to: ${indexFile}`);
+    res.json({ success: true, message: 'Page text saved successfully' });
+  } catch (error) {
+    console.error('Error saving page text:', error);
+    res.status(500).json({ error: 'Failed to save page text' });
   }
 });
 

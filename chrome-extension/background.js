@@ -52,6 +52,19 @@ async function downloadPageWithAssets(tabId, url, title) {
     const assets = result[0].result;
     console.log('Found assets:', assets);
     
+    // Extract page text content
+    const textResult = await chrome.scripting.executeScript({
+      target: { tabId: tabId },
+      function: extractPageText
+    });
+    
+    const pageText = textResult[0].result;
+    
+    // Send page text to server to save as index.md
+    if (pageText) {
+      await sendPageTextToServer(pageText, subdirectory);
+    }
+    
     // Download the main HTML page
     await chrome.downloads.download({
       url: url,
@@ -133,4 +146,76 @@ function extractPageAssets() {
   });
   
   return assets;
+}
+
+function extractPageText() {
+  // Get the page title
+  const title = document.title;
+  
+  // Get the main content - try common content selectors
+  const contentSelectors = [
+    'main',
+    'article', 
+    '.content',
+    '.article-content',
+    '.post-content',
+    '#content',
+    'body'
+  ];
+  
+  let content = '';
+  for (const selector of contentSelectors) {
+    const element = document.querySelector(selector);
+    if (element) {
+      content = element.innerText;
+      break;
+    }
+  }
+  
+  // If no specific content found, get all text from body
+  if (!content) {
+    content = document.body.innerText;
+  }
+  
+  // Clean up the text
+  content = content
+    .replace(/\n\s*\n\s*\n/g, '\n\n')  // Remove excessive line breaks
+    .trim();
+  
+  // Truncate if too long (keep first 100KB of text)
+  if (content.length > 100000) {
+    content = content.substring(0, 100000) + '\n\n[Content truncated - original was too large]';
+  }
+  
+  return {
+    title: title,
+    content: content,
+    url: window.location.href
+  };
+}
+
+async function sendPageTextToServer(pageData, directoryName) {
+  try {
+    const response = await fetch('http://localhost:3000/save-text', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': 'pocketz-api-key-2024'
+      },
+      body: JSON.stringify({ 
+        title: pageData.title,
+        content: pageData.content,
+        url: pageData.url,
+        directoryName: directoryName
+      })
+    });
+    
+    if (response.ok) {
+      console.log('Page text sent successfully');
+    } else {
+      console.error('Failed to send page text:', response.status);
+    }
+  } catch (error) {
+    console.error('Network error sending page text:', error);
+  }
 }
