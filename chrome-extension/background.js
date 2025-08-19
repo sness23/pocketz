@@ -1,8 +1,10 @@
 chrome.commands.onCommand.addListener(async (command) => {
   if (command === "send-url") {
+    console.log('Keyboard shortcut triggered:', command);
     try {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       if (tab) {
+        console.log('Sending URL:', tab.url);
         await sendUrlToServer(tab.url);
       }
     } catch (error) {

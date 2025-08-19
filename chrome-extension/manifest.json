@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "URL Sender",
   "version": "1.0",
-  "description": "Send current URL to server with Shift+Ctrl+P",
+  "description": "Send current URL to server with Shift+Alt+O",
   "permissions": [
     "activeTab",
     "scripting"
@@ -19,7 +19,7 @@
   "commands": {
     "send-url": {
       "suggested_key": {
-        "default": "Ctrl+Shift+O"
+        "default": "Shift+Alt+O"
       },
       "description": "Send current URL to server"
     }
