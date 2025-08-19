@@ -33,3 +33,4 @@
 - [2025-08-19T01:31:40.210Z] https://static-content.springer.com/esm/art%3A10.1038%2Fs41467-025-61108-2/MediaObjects/41467_2025_61108_MOESM3_ESM.pdf
 - [2025-08-19T01:32:05.991Z] https://www.nature.com/articles/s41551-025-01464-y (saved to: pocketz_1755567117355400000)
 - [2025-08-19T01:36:39.365Z] https://www.nature.com/articles/s41467-025-62906-4 (saved to: pocketz_1755567390915100200)
+- [2025-08-19T01:38:50.727Z] https://www.nature.com/articles/s41698-025-01082-6 (saved to: pocketz_1755567524263900200)

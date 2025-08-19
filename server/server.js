@@ -12,6 +12,7 @@ const PORT = 3000;
 const API_KEY = 'pocketz-api-key-2024';
 const DOWNLOADS_DIR = '/home/sness/down';
 const VAULT_DIR = '/home/sness/data/vaults/pocketz';
+const PAPERS_DIR = '/home/sness/data/vaults/pocketz/papers';
 
 app.use(cors());
 app.use(express.json());
@@ -76,16 +77,43 @@ async function moveDownloadedFiles(directoryName) {
     // Check if source directory exists
     await fs.access(sourcePath);
     
-    // Ensure vault directory exists
+    // Ensure vault and papers directories exist
     await fs.mkdir(VAULT_DIR, { recursive: true });
+    await fs.mkdir(PAPERS_DIR, { recursive: true });
     
-    // Move the directory using mv command
+    // First, find and move any PDF files to papers directory
+    await movePDFsToPapersFolder(sourcePath, directoryName);
+    
+    // Then move the main directory
     await execAsync(`mv "${sourcePath}" "${targetPath}"`);
     
     console.log(`Moved ${sourcePath} -> ${targetPath}`);
   } catch (error) {
     console.error(`Failed to move ${sourcePath}:`, error.message);
     throw error;
+  }
+}
+
+async function movePDFsToPapersFolder(sourcePath, directoryName) {
+  try {
+    // Find all PDF files in the source directory and subdirectories
+    const { stdout } = await execAsync(`find "${sourcePath}" -name "*.pdf" -type f`);
+    
+    if (stdout.trim()) {
+      const pdfFiles = stdout.trim().split('\n');
+      
+      for (const pdfFile of pdfFiles) {
+        const fileName = path.basename(pdfFile);
+        const targetPdfPath = path.join(PAPERS_DIR, `${directoryName}_${fileName}`);
+        
+        // Move PDF to papers folder with directory prefix to avoid conflicts
+        await execAsync(`mv "${pdfFile}" "${targetPdfPath}"`);
+        console.log(`Moved PDF: ${fileName} -> papers/${directoryName}_${fileName}`);
+      }
+    }
+  } catch (error) {
+    // If no PDFs found or other error, just log it but don't fail
+    console.log('No PDFs found or error moving PDFs:', error.message);
   }
 }
 
