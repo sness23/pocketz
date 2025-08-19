@@ -29,3 +29,6 @@
 - [2025-08-19T00:54:06.457Z] https://www.nature.com/articles/s41587-025-02761-2
 - [2025-08-19T01:19:16.520Z] https://www.nature.com/articles/s41467-025-62417-2
 - [2025-08-19T01:19:44.760Z] https://www.nature.com/articles/s41467-025-62696-9
+- [2025-08-19T01:31:02.192Z] https://www.nature.com/articles/s41467-025-61108-2
+- [2025-08-19T01:31:40.210Z] https://static-content.springer.com/esm/art%3A10.1038%2Fs41467-025-61108-2/MediaObjects/41467_2025_61108_MOESM3_ESM.pdf
+- [2025-08-19T01:32:05.991Z] https://www.nature.com/articles/s41551-025-01464-y (saved to: pocketz_1755567117355400000)

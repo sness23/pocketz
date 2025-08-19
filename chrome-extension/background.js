@@ -5,8 +5,8 @@ chrome.commands.onCommand.addListener(async (command) => {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       if (tab) {
         console.log('Sending URL:', tab.url);
-        await sendUrlToServer(tab.url);
-        await downloadPageWithAssets(tab.id, tab.url, tab.title);
+        const directoryName = await downloadPageWithAssets(tab.id, tab.url, tab.title);
+        await sendUrlToServer(tab.url, directoryName);
       }
     } catch (error) {
       console.error('Error sending URL:', error);
@@ -14,7 +14,7 @@ chrome.commands.onCommand.addListener(async (command) => {
   }
 });
 
-async function sendUrlToServer(url) {
+async function sendUrlToServer(url, directoryName) {
   try {
     const response = await fetch('http://localhost:3000/save-url', {
       method: 'POST',
@@ -22,11 +22,11 @@ async function sendUrlToServer(url) {
         'Content-Type': 'application/json',
         'X-API-Key': 'pocketz-api-key-2024'
       },
-      body: JSON.stringify({ url })
+      body: JSON.stringify({ url, directoryName })
     });
     
     if (response.ok) {
-      console.log('URL sent successfully:', url);
+      console.log('URL and directory sent successfully:', url, directoryName);
     } else {
       console.error('Failed to send URL:', response.status);
     }
@@ -80,8 +80,10 @@ async function downloadPageWithAssets(tabId, url, title) {
     }
     
     console.log('Page and assets download completed');
+    return subdirectory;
   } catch (error) {
     console.error('Error downloading page with assets:', error);
+    return null;
   }
 }
 

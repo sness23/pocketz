@@ -12,7 +12,7 @@ app.use(express.json());
 
 app.post('/save-url', async (req, res) => {
   try {
-    const { url } = req.body;
+    const { url, directoryName } = req.body;
     const apiKey = req.headers['x-api-key'];
     
     if (!apiKey || apiKey !== API_KEY) {
@@ -24,7 +24,9 @@ app.post('/save-url', async (req, res) => {
     }
 
     const timestamp = new Date().toISOString();
-    const markdownEntry = `- [${timestamp}] ${url}\n`;
+    const markdownEntry = directoryName 
+      ? `- [${timestamp}] ${url} (saved to: ${directoryName})\n`
+      : `- [${timestamp}] ${url}\n`;
     
     const filePath = path.join(__dirname, 'urls.md');
     
@@ -40,7 +42,7 @@ app.post('/save-url', async (req, res) => {
       }
     }
     
-    console.log(`URL saved: ${url}`);
+    console.log(`URL saved: ${url}${directoryName ? ` (directory: ${directoryName})` : ''}`);
     res.json({ success: true, message: 'URL saved successfully' });
   } catch (error) {
     console.error('Error saving URL:', error);
