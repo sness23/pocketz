@@ -37,10 +37,12 @@ async function sendUrlToServer(url) {
 
 async function downloadPage(url, title) {
   try {
-    const sanitizedTitle = title.replace(/[^a-z0-9]/gi, '_').substring(0, 50);
-    const filename = `${sanitizedTitle}.html`;
+    const timestampNs = Date.now() * 1000000 + (performance.now() % 1) * 1000000;
+    const sanitizedTitle = title.replace(/[^a-z0-9]/gi, '_').substring(0, 30);
+    const subdirectory = `pocketz_${timestampNs}`;
+    const filename = `${subdirectory}/${sanitizedTitle}.html`;
     
-    console.log('Downloading page:', filename);
+    console.log('Downloading page to:', filename);
     
     await chrome.downloads.download({
       url: url,
