@@ -41,3 +41,7 @@
 - [2025-08-19T01:51:25.631Z] https://www.nature.com/articles/s41467-025-62859-8 (saved to: pocketz_1755568277459700000)
 - [2025-08-19T02:00:20.591Z] https://www.nature.com/articles/s41401-025-01630-7 (saved to: pocketz_1755568815333000000)
 - [2025-08-19T02:00:51.075Z] https://www.nature.com/articles/s41594-025-01614-5 (saved to: pocketz_1755568839964600000)
+- [2025-08-19T02:21:03.957Z] https://www.nature.com/articles/s41564-025-02084-7 (saved to: pocketz_1755570054630800100)
+- [2025-08-19T02:21:27.820Z] https://www.nature.com/articles/s41589-025-01997-y (saved to: pocketz_1755570080599900200)
+- [2025-08-19T02:22:55.357Z] https://www.nature.com/articles/s44387-025-00018-6 (saved to: pocketz_1755570170677200000)
+- [2025-08-19T02:23:43.071Z] https://www.nature.com/articles/s41467-025-62755-1 (saved to: pocketz_1755570214517900000)
