@@ -49,3 +49,7 @@
 - [2025-08-19T17:58:53.624Z] https://www.nature.com/articles/s41467-025-62680-3 (saved to: pocketz_1755626321314699800)
 - [2025-08-19T18:00:45.150Z] https://www.nature.com/articles/s41467-025-62757-z (saved to: pocketz_1755626434804900000)
 - [2025-08-19T18:04:39.658Z] https://www.nature.com/articles/s41594-025-01631-4 (saved to: pocketz_1755626668013600000)
+- [2025-08-20T01:09:38.025Z] https://news.mit.edu/2025/researchers-glimpse-inner-workings-protein-language-models-0818 (saved to: pocketz_1755652177841300000)
+- [2025-08-20T01:10:51.022Z] https://www.pnas.org/doi/10.1073/pnas.2506316122 (saved to: pocketz_1755652243344800000)
+- [2025-08-20T11:30:28.951Z] https://www.nature.com/articles/s41467-025-62654-5 (saved to: pocketz_1755689413583400000)
+- [2025-08-20T11:31:43.890Z] https://www.nature.com/articles/s41564-025-02085-6 (saved to: pocketz_1755689491571700000)
