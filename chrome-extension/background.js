@@ -39,9 +39,24 @@ async function downloadPageWithAssets(tabId, url, title) {
   try {
     const subdirectory = generateDirectoryName(url, title);
     
-    console.log('Extracting assets from page...');
+    console.log('Extracting page text first (before any navigation)...');
     
-    // Extract assets from the page
+    // Extract page text content FIRST, before clicking any PDF links
+    let pageText = null;
+    try {
+      const textResult = await chrome.scripting.executeScript({
+        target: { tabId: tabId },
+        function: extractPageText
+      });
+      pageText = textResult[0].result;
+      console.log('Successfully extracted page text');
+    } catch (error) {
+      console.warn('Failed to extract page text:', error);
+    }
+    
+    console.log('Now extracting assets from page...');
+    
+    // Extract assets from the page (this may click PDFs and change the page)
     let assets = [];
     let pdfClicked = false;
     
@@ -63,23 +78,6 @@ async function downloadPageWithAssets(tabId, url, title) {
     } catch (error) {
       console.warn('Failed to extract assets (frame may have been removed):', error);
       // Continue without assets if frame was removed
-    }
-    
-    // Extract page text content (skip if PDF was clicked as page might have changed)
-    let pageText = null;
-    if (!pdfClicked) {
-      try {
-        const textResult = await chrome.scripting.executeScript({
-          target: { tabId: tabId },
-          function: extractPageText
-        });
-        pageText = textResult[0].result;
-      } catch (error) {
-        console.warn('Failed to extract page text (frame may have been removed):', error);
-        // Continue without page text if frame was removed
-      }
-    } else {
-      console.log('Skipping page text extraction as PDF was clicked and page may have changed');
     }
     
     // Send page text to server to save as index.md
