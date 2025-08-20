@@ -37,39 +37,49 @@ async function sendUrlToServer(url, directoryName) {
 
 async function downloadPageWithAssets(tabId, url, title) {
   try {
-    const timestampNs = Date.now() * 1000000 + (performance.now() % 1) * 1000000;
-    const sanitizedTitle = title.replace(/[^a-z0-9]/gi, '_').substring(0, 30);
-    const subdirectory = `pocketz_${timestampNs}`;
+    const subdirectory = generateDirectoryName(url, title);
     
     console.log('Extracting assets from page...');
     
     // Extract assets from the page
-    const result = await chrome.scripting.executeScript({
-      target: { tabId: tabId },
-      function: extractPageAssets
-    });
+    let assets = [];
+    let pdfClicked = false;
     
-    const assets = result[0].result;
-    console.log('Found assets:', assets);
-    
-    // Wait a bit if PDFs were clicked to allow downloads to start
-    const pdfClicked = assets.some(asset => asset.clicked);
-    if (pdfClicked) {
-      console.log('PDF download links clicked, waiting 3 seconds...');
-      await new Promise(resolve => setTimeout(resolve, 3000));
+    try {
+      const result = await chrome.scripting.executeScript({
+        target: { tabId: tabId },
+        function: extractPageAssets
+      });
+      
+      assets = result[0].result || [];
+      console.log('Found assets:', assets);
+      
+      // Wait a bit if PDFs were clicked to allow downloads to start
+      pdfClicked = assets.some(asset => asset.clicked);
+      if (pdfClicked) {
+        console.log('PDF download links clicked, waiting 3 seconds...');
+        await new Promise(resolve => setTimeout(resolve, 3000));
+      }
+    } catch (error) {
+      console.warn('Failed to extract assets (frame may have been removed):', error);
+      // Continue without assets if frame was removed
     }
     
-    // Extract page text content
+    // Extract page text content (skip if PDF was clicked as page might have changed)
     let pageText = null;
-    try {
-      const textResult = await chrome.scripting.executeScript({
-        target: { tabId: tabId },
-        function: extractPageText
-      });
-      pageText = textResult[0].result;
-    } catch (error) {
-      console.warn('Failed to extract page text (frame may have been removed):', error);
-      // Continue without page text if frame was removed
+    if (!pdfClicked) {
+      try {
+        const textResult = await chrome.scripting.executeScript({
+          target: { tabId: tabId },
+          function: extractPageText
+        });
+        pageText = textResult[0].result;
+      } catch (error) {
+        console.warn('Failed to extract page text (frame may have been removed):', error);
+        // Continue without page text if frame was removed
+      }
+    } else {
+      console.log('Skipping page text extraction as PDF was clicked and page may have changed');
     }
     
     // Send page text to server to save as index.md
@@ -78,6 +88,7 @@ async function downloadPageWithAssets(tabId, url, title) {
     }
     
     // Download the main HTML page
+    const sanitizedTitle = title ? title.replace(/[^a-z0-9]/gi, '_').substring(0, 30) : 'page';
     await chrome.downloads.download({
       url: url,
       filename: `${subdirectory}/${sanitizedTitle}.html`,
@@ -229,5 +240,135 @@ async function sendPageTextToServer(pageData, directoryName) {
     }
   } catch (error) {
     console.error('Network error sending page text:', error);
+  }
+}
+
+function generateDirectoryName(url, title) {
+  // Generate timestamp in YYYY-MM-DD_HHMMSS format
+  const now = new Date();
+  const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
+  const timeStr = now.toTimeString().split(' ')[0].replace(/:/g, ''); // HHMMSS
+  const timestamp = `${dateStr}_${timeStr}`;
+  
+  // Extract domain and article ID
+  const { domain, articleId } = extractDomainAndArticle(url, title);
+  
+  // Format: YYYY-MM-DD_HHMMSS_domain_articleid
+  return `${timestamp}_${domain}_${articleId}`;
+}
+
+function extractDomainAndArticle(url, title) {
+  try {
+    const urlObj = new URL(url);
+    const hostname = urlObj.hostname.toLowerCase();
+    
+    // Domain mapping for common sites
+    const domainMap = {
+      'nature.com': 'nature',
+      'www.nature.com': 'nature',
+      'arxiv.org': 'arxiv',
+      'www.arxiv.org': 'arxiv',
+      'pubmed.ncbi.nlm.nih.gov': 'pubmed',
+      'github.com': 'github',
+      'www.github.com': 'github',
+      'youtube.com': 'youtube',
+      'www.youtube.com': 'youtube',
+      'youtu.be': 'youtube',
+      'news.mit.edu': 'mitnews',
+      'www.pnas.org': 'pnas',
+      'pnas.org': 'pnas',
+      'biorxiv.org': 'biorxiv',
+      'www.biorxiv.org': 'biorxiv',
+      'medrxiv.org': 'medrxiv',
+      'www.medrxiv.org': 'medrxiv',
+      'static-content.springer.com': 'staticcontentspringercom'
+    };
+    
+    const domain = domainMap[hostname] || hostname.replace(/^www\./, '').replace(/[^a-z0-9]/g, '');
+    
+    // Article ID extraction patterns
+    const extractors = {
+      nature: () => {
+        const match = url.match(/articles\/([^/?#]+)/);
+        return match ? match[1] : null;
+      },
+      arxiv: () => {
+        const match = url.match(/abs\/(\d+\.\d+v?\d*)/);
+        return match ? match[1] : null;
+      },
+      pubmed: () => {
+        const match = url.match(/articles\/PMC(\d+)/) || url.match(/\/(\d+)\/?$/);
+        return match ? match[1] : null;
+      },
+      github: () => {
+        const match = url.match(/github\.com\/([^/]+)\/([^/?#]+)/);
+        return match ? `${match[1]}_${match[2]}` : null;
+      },
+      youtube: () => {
+        const match = url.match(/watch\?v=([^&]+)/) || url.match(/youtu\.be\/([^/?]+)/);
+        return match ? match[1] : null;
+      },
+      mitnews: () => {
+        const match = url.match(/\/([^/?#]+)$/);
+        return match ? match[1] : null;
+      },
+      pnas: () => {
+        const match = url.match(/doi\/[^/]+\/pnas\.([^/?#]+)/);
+        return match ? match[1] : null;
+      },
+      biorxiv: () => {
+        const match = url.match(/content\/[^/]+\/([^/?#]+)/);
+        return match ? match[1] : null;
+      },
+      medrxiv: () => {
+        const match = url.match(/content\/[^/]+\/([^/?#]+)/);
+        return match ? match[1] : null;
+      },
+      staticcontentspringercom: () => {
+        // Extract filename from path for Springer static content
+        const pathParts = urlObj.pathname.split('/');
+        const filename = pathParts[pathParts.length - 1];
+        return filename || null;
+      }
+    };
+    
+    // Try domain-specific extractor
+    let articleId = null;
+    const extractor = extractors[domain];
+    if (extractor) {
+      articleId = extractor();
+    }
+    
+    // Fallback strategies
+    if (!articleId) {
+      // Try to get last path segment
+      const pathParts = urlObj.pathname.split('/').filter(Boolean);
+      if (pathParts.length > 0) {
+        articleId = pathParts[pathParts.length - 1];
+      }
+    }
+    
+    if (!articleId && title) {
+      // Use sanitized title as fallback
+      articleId = title.toLowerCase()
+        .replace(/[^a-z0-9\s]/g, '')
+        .replace(/\s+/g, '_')
+        .substring(0, 30);
+    }
+    
+    if (!articleId) {
+      // Final fallback: use 'page'
+      articleId = 'page';
+    }
+    
+    // Clean article ID
+    articleId = articleId.replace(/[^a-zA-Z0-9._-]/g, '_');
+    
+    return { domain, articleId };
+  } catch (error) {
+    console.error('Error extracting domain and article:', error);
+    // Fallback to timestamp-based naming
+    const timestamp = Date.now();
+    return { domain: 'unknown', articleId: `page_${timestamp}` };
   }
 }
