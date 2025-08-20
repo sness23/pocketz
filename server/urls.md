@@ -65,3 +65,4 @@
 - [2025-08-20T16:45:48.924Z] https://www.nature.com/articles/s41467-025-61712-2 (saved to: 2025-08-20_094537_nature_s41467-025-61712-2)
 - [2025-08-20T16:46:08.330Z] https://www.nature.com/articles/s42004-025-01628-6 (saved to: 2025-08-20_094553_nature_s42004-025-01628-6)
 - [2025-08-20T16:46:28.960Z] https://www.nature.com/articles/s41592-025-02740-0 (saved to: 2025-08-20_094615_nature_s41592-025-02740-0)
+- [2025-08-20T16:51:00.834Z] https://www.nature.com/articles/s44387-025-00018-6 (saved to: 2025-08-20_095052_nature_s44387-025-00018-6)
