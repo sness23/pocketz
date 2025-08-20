@@ -85,7 +85,7 @@ app.post('/save-text', async (req, res) => {
     }
 
     const targetDir = path.join(VAULT_DIR, directoryName);
-    const indexFile = path.join(targetDir, 'index.md');
+    const indexFile = path.join(targetDir, `${directoryName}.md`);
     
     // Ensure directory exists
     await fs.mkdir(targetDir, { recursive: true });
@@ -93,7 +93,7 @@ app.post('/save-text', async (req, res) => {
     // Create markdown content
     const markdownContent = `# ${title || 'Saved Page'}\n\n**URL:** ${url}\n\n**Saved:** ${new Date().toISOString()}\n\n---\n\n${content}`;
     
-    // Write the index.md file
+    // Write the descriptively named markdown file
     await fs.writeFile(indexFile, markdownContent);
     
     console.log(`Page text saved to: ${indexFile}`);
